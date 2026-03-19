@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #f0f9ff;
+  color: #0f172a;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #e0f2fe;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3b82f6;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #60a5fa;
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-sentry-900/60 backdrop-blur-xl border border-sentry-700/30 rounded-2xl shadow-lg shadow-sentry-950/50;
+  }
+
+  .glass-card-hover {
+    @apply glass-card hover:border-sentry-500/40 hover:shadow-sentry-600/20 transition-all duration-300;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-sentry-600 to-sentry-500 hover:from-sentry-500 hover:to-sentry-400 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-sentry-600/30 hover:shadow-sentry-500/40 active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply bg-sentry-800/60 hover:bg-sentry-700/60 text-sentry-200 font-medium py-2.5 px-6 rounded-xl border border-sentry-700/40 hover:border-sentry-600/40 transition-all duration-300;
+  }
+
+  .btn-danger {
+    @apply bg-red-600/80 hover:bg-red-500/80 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-300;
+  }
+
+  .input-field {
+    @apply w-full bg-sentry-950/60 border border-sentry-700/40 rounded-xl px-4 py-3 text-sentry-100 placeholder-sentry-500 focus:outline-none focus:border-sentry-500 focus:ring-1 focus:ring-sentry-500/50 transition-all duration-300;
+  }
+
+  .label-text {
+    @apply block text-sm font-medium text-sentry-300 mb-1.5;
+  }
+
+  .page-container {
+    @apply p-6 lg:p-8 max-w-7xl mx-auto;
+  }
+
+  .page-title {
+    @apply text-2xl lg:text-3xl font-bold text-sentry-50 mb-1;
+  }
+
+  .page-subtitle {
+    @apply text-sentry-400 text-sm lg:text-base mb-6;
+  }
+
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .status-active {
+    @apply status-badge bg-emerald-500/20 text-emerald-400 border border-emerald-500/30;
+  }
+
+  .status-inactive {
+    @apply status-badge bg-sentry-700/40 text-sentry-400 border border-sentry-600/30;
+  }
+
+  .status-alert {
+    @apply status-badge bg-red-500/20 text-red-400 border border-red-500/30;
+  }
+}
