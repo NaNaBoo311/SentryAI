@@ -1,6 +1,5 @@
 import io
-import numpy as np
-import cv2
+from PIL import Image
 from ultralytics import YOLO
 
 
@@ -18,18 +17,19 @@ class DetectorService:
 
         Returns dict with detections list, count, and frame dimensions.
         """
-        # Decode image
-        nparr = np.frombuffer(image_bytes, np.uint8)
-        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-        if frame is None:
+        # Decode image using Pillow
+        try:
+            image = Image.open(io.BytesIO(image_bytes))
+            if image.mode != "RGB":
+                image = image.convert("RGB")
+        except Exception:
             return {"detections": [], "count": 0, "frame_width": 0, "frame_height": 0}
 
-        h, w = frame.shape[:2]
+        w, h = image.size
 
         # Run inference
         results = self.model(
-            frame,
+            image,
             conf=self.confidence_threshold,
             classes=[self.person_class_id],
             verbose=False,
