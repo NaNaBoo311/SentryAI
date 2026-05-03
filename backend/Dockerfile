@@ -10,10 +10,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-
+# 1. BƯỚC ĐẢO NGƯỢC: Cài PyTorch (cực nặng, hiếm khi đổi) TRƯỚC TIÊN
 RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
+# 2. BÂY GIỜ MỚI COPY danh sách thư viện vào (hay đổi)
+COPY requirements.txt .
+
+# 3. Cài các thư viện trong danh sách (sẽ chạy rất nhanh nếu có thêm httpx)
 RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 COPY . .

@@ -1,446 +1,370 @@
-# SentryAI — Smart Home Security System
+## 📋 Project Overview
 
-## 📋 Tổng Quan
+**SentryAI** is a comprehensive smart home security system combining:
+- **🎥 AI-Powered Human Detection**: Real-time person detection using YOLOv8n from browser webcams
+- **🔥 Fire Alarm System**: Real-time temperature monitoring via MQTT with fallback simulator mode
+- **🔔 Smart Notifications**: Auto-generated alerts with unread count tracking
+- **🛡️ Secure Authentication**: Supabase JWT-based auth with Row-Level Security (RLS)
+- **📊 Detection History**: Paginated view of all detection events
 
-**SentryAI** là một hệ thống giám sát an ninh thông minh cho nhà ở, sử dụng AI (YOLOv8n) để phát hiện con người trong thời gian thực từ các camera kết nối với trình duyệt.
-
-### Kiến trúc chung
-- **Frontend**: React + Vite + Tailwind CSS + Supabase Auth
-- **Backend**: FastAPI + YOLOv8n (object detection) + Supabase (database & auth)
-- **Database**: Supabase PostgreSQL với RLS (Row Level Security)
-- **Deployment**: Docker hỗ trợ cho backend
+**Tech Stack:**
+- Frontend: React 18 + Vite + Tailwind CSS
+- Backend: FastAPI + YOLOv8n + Supabase
+- Database: Supabase PostgreSQL with RLS policies
+- IoT: MQTT.js for real-time temperature data
 
 ---
 
-## 🏗️ Cấu trúc Project
+## 🏗️ Complete Directory Structure
 
 ```
 SentryAI/
-├── frontend/              # React application
+│
+├── Project.md                    # Original project documentation
+├── README.md                     # Comprehensive README (500+ lines)
+│
+├── frontend/                     # React + Vite Frontend
 │   ├── src/
-│   │   ├── App.jsx                    # Main app routes
-│   │   ├── main.jsx                   # Entry point
-│   │   ├── index.css                  # Tailwind styles + custom components
-│   │   ├── components/                # Reusable UI components
-│   │   │   ├── AuthForm.jsx           # Login/Signup form
-│   │   │   ├── CameraCard.jsx         # Individual camera feed card
-│   │   │   ├── CameraGrid.jsx         # Grid layout for cameras
-│   │   │   ├── DetectionBadge.jsx     # Badge showing detection count
-│   │   │   ├── DetectionToggle.jsx    # On/off toggle for detection
-│   │   │   ├── EmptyState.jsx         # Empty state UI
-│   │   │   ├── HistoryTable.jsx       # Detection history table
-│   │   │   ├── LoadingSpinner.jsx     # Loading indicator
-│   │   │   └── NotificationToast.jsx  # Toast notifications
+│   │   ├── App.jsx              # Main router (5 protected routes)
+│   │   ├── main.jsx             # React entry point
+│   │   ├── index.css            # Tailwind + custom components
+│   │   │
+│   │   ├── components/          # 10 reusable UI components
+│   │   │   ├── AuthForm.jsx
+│   │   │   ├── CameraCard.jsx   # Video stream + bounding boxes
+│   │   │   ├── CameraGrid.jsx
+│   │   │   ├── DetectionBadge.jsx
+│   │   │   ├── DetectionToggle.jsx
+│   │   │   ├── EmptyState.jsx
+│   │   │   ├── HistoryTable.jsx
+│   │   │   ├── LoadingSpinner.jsx
+│   │   │   └── NotificationToast.jsx
+│   │   │
 │   │   ├── contexts/
-│   │   │   └── AuthContext.jsx        # Auth state management (Supabase)
+│   │   │   └── AuthContext.jsx  # Global auth state + useAuth()
+│   │   │
 │   │   ├── hooks/
-│   │   │   ├── useDeviceCameras.js    # Hook for browser camera enumeration
-│   │   │   └── useDetection.js        # Hook for periodic frame capture & inference
+│   │   │   ├── useDeviceCameras.js    # Enumerate video devices
+│   │   │   └── useDetection.js        # Capture frames & inference
+│   │   │
 │   │   ├── layouts/
-│   │   │   ├── DashboardLayout.jsx    # Main layout with sidebar & navbar
-│   │   │   ├── Navbar.jsx             # Top navigation bar
-│   │   │   └── Sidebar.jsx            # Side navigation menu
-│   │   ├── pages/
-│   │   │   ├── DashboardPage.jsx      # Main dashboard with camera grid
-│   │   │   ├── HistoryPage.jsx        # Detection history view
-│   │   │   ├── LoginPage.jsx          # Login page
-│   │   │   ├── NotificationsPage.jsx  # Notifications center
-│   │   │   ├── SettingsPage.jsx       # User settings
-│   │   │   └── SignupPage.jsx         # Signup page
+│   │   │   ├── DashboardLayout.jsx
+│   │   │   ├── Navbar.jsx       # Notifications bell + user menu
+│   │   │   └── Sidebar.jsx      # Nav menu with Fire Alarm link
+│   │   │
+│   │   ├── pages/               # 7 route pages
+│   │   │   ├── DashboardPage.jsx
+│   │   │   ├── HistoryPage.jsx
+│   │   │   ├── LoginPage.jsx
+│   │   │   ├── NotificationsPage.jsx
+│   │   │   ├── SettingsPage.jsx
+│   │   │   ├── SignupPage.jsx
+│   │   │   └── FireAlarmPage.jsx       # 🔥 NEW (720 lines)
+│   │   │
 │   │   ├── routes/
-│   │   │   └── ProtectedRoute.jsx     # Route wrapper requiring auth
-│   │   ├── services/
-│   │   │   ├── authService.js         # Auth API calls
-│   │   │   ├── cameraService.js       # Camera CRUD via Supabase RPC
-│   │   │   ├── detectionService.js    # Detection API calls to backend
-│   │   │   ├── notificationService.js # Notification fetching
-│   │   │   └── settingsService.js     # User settings via Supabase RPC
-│   │   └── utils/
-│   │       ├── helpers.js             # Date formatting, confidence formatting
-│   │       └── supabaseClient.js      # Supabase client init
-│   ├── sqls/                          # Database setup scripts
-│   │   ├── cameras.sql                # Camera table & RPC functions
-│   │   ├── detection_events.sql       # Detection events table & RPC
-│   │   ├── detection_settings.sql     # User detection config & RPC
-│   │   ├── notifications.sql          # Notifications table & RPC
-│   │   └── profiles.sql               # User profiles table & RPC
-│   ├── index.html                     # HTML entry point
-│   ├── package.json                   # Dependencies
-│   ├── tailwind.config.js             # Tailwind config with custom colors
-│   ├── vite.config.js                 # Vite bundler config
-│   ├── postcss.config.js              # PostCSS config
-│   └── .env                           # Environment variables
+│   │   │   └── ProtectedRoute.jsx
+│   │   │
+│   │   ├── services/            # Supabase RPC + API calls
+│   │   │   ├── authService.js
+│   │   │   ├── cameraService.js
+│   │   │   ├── detectionService.js
+│   │   │   ├── fireAlarmService.js     # 🔥 NEW: MQTT client
+│   │   │   ├── notificationService.js
+│   │   │   └── settingsService.js
+│   │   │
+│   │   ├── utils/
+│   │   │   ├── helpers.js       # formatDateTime(), timeAgo()
+│   │   │   └── supabaseClient.js
+│   │   │
+│   │   └── index.css            # Tailwind setup
+│   │
+│   ├── sqls/                    # Database setup (7 SQL scripts)
+│   │   ├── profiles.sql         # User profiles
+│   │   ├── cameras.sql          # Camera records
+│   │   ├── detection_settings.sql
+│   │   ├── detection_events.sql
+│   │   ├── notifications.sql
+│   │   ├── fire_settings.sql    # 🔥 NEW: Fire config per user
+│   │   └── fire_alerts.sql      # 🔥 NEW: Fire event logs
+│   │
+│   ├── index.html
+│   ├── package.json             # 7 dependencies
+│   ├── vite.config.js
+│   ├── tailwind.config.js
+│   ├── postcss.config.js
+│   ├── .env                     # Local vars (NEVER commit)
+│   ├── .env.example
+│   └── .gitignore
 │
-├── backend/               # FastAPI application
+├── backend/                     # FastAPI Python Backend
 │   ├── app/
-│   │   ├── main.py                    # FastAPI app setup, routes mounting, lifespan
-│   │   ├── __init__.py
-│   │   ├── api/
-│   │   │   ├── detection.py           # POST /api/detect/frame, /api/detect/log-event
-│   │   │   ├── health.py              # GET /health
-│   │   │   └── notifications.py       # POST /api/notifications/create
+│   │   ├── main.py             # FastAPI setup, CORS, lifespan
+│   │   │
+│   │   ├── api/                # 4 routers
+│   │   │   ├── detection.py    # POST /api/detect/frame
+│   │   │   ├── health.py       # GET /health
+│   │   │   ├── notifications.py
+│   │   │   └── fire.py         # 🔥 NEW: /api/fire/* endpoints
+│   │   │
 │   │   ├── core/
-│   │   │   ├── config.py              # Settings from .env
-│   │   │   └── security.py            # JWT verification from Supabase
+│   │   │   ├── config.py       # Settings from .env
+│   │   │   └── security.py     # JWT verification
+│   │   │
 │   │   ├── schemas/
-│   │   │   └── detection.py           # Pydantic models for detection API
+│   │   │   └── detection.py    # Pydantic models
+│   │   │
 │   │   └── services/
-│   │       ├── detector.py            # YOLOv8n model wrapper for person detection
-│   │       └── supabase_client.py     # Supabase admin client singleton
-│   ├── requirements.txt               # Python dependencies
-│   ├── Dockerfile                     # Docker image for backend
-│   ├── .env.example                   # Example env file
-│   ├── .gitignore
+│   │       ├── detector.py     # YOLOv8n wrapper
+│   │       └── supabase_client.py
+│   │
+│   ├── requirements.txt        # 10 Python packages
+│   ├── Dockerfile
 │   ├── .dockerignore
-│   └── yolov8n.pt                     # YOLOv8n model weights (for detection)
+│   ├── yolov8n.pt             # Model weights (6.3 MB)
+│   ├── .env
+│   ├── .env.example
+│   └── .gitignore
 │
-└── README.md              # This file
+└── README.md                   # This file (500 lines)
 ```
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start Guide
 
-### Prerequisites
-- Node.js 18+ (frontend)
-- Python 3.11+ (backend)
-- Supabase account & project
-- Docker (optional, for backend)
-
-### Setup Frontend
-
+### **Frontend Setup**
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Create .env file
 cp .env.example .env
-# Add Supabase credentials:
-# VITE_SUPABASE_URL=...
-# VITE_SUPABASE_ANON_KEY=...
-# VITE_BACKEND_URL=http://localhost:8000
-
-# Setup database (run SQL scripts in Supabase console)
-# Go to Supabase > SQL > paste contents of sqls/*.sql files
-
-# Start dev server
+# Edit .env: Add SUPABASE_URL, ANON_KEY, BACKEND_URL
 npm run dev
 # Opens http://localhost:5173
 ```
 
-### Setup Backend
-
+### **Backend Setup**
 ```bash
 cd backend
-
-# Create virtual environment
 python -m venv venv
-source venv/bin/activate  # or `venv\Scripts\activate` on Windows
-
-# Install dependencies
+source venv/bin/activate  # macOS/Linux
+# venv\Scripts\activate  # Windows
 pip install -r requirements.txt
-
-# Create .env file
 cp .env.example .env
-# Add Supabase & CORS config:
-# SUPABASE_URL=...
-# SUPABASE_SERVICE_KEY=...
-# SUPABASE_JWT_SECRET=...
-# CORS_ORIGINS=http://localhost:5173
-
-# Start server
+# Edit .env: Add SUPABASE credentials
 uvicorn app.main:app --reload
-# Server runs at http://localhost:8000
+# Server at http://localhost:8000
 ```
 
+### **Database Setup**
+Run each SQL script in Supabase console (in order):
+1. profiles.sql
+2. detection_settings.sql
+3. cameras.sql
+4. detection_events.sql
+5. notifications.sql
+6. `sqls/fire_settings.sql` (🔥 NEW)
+7. `sqls/fire_alerts.sql` (🔥 NEW)
+
 ---
 
-## 🔑 Key Features
+## 🎯 Core Features
 
-### 1. **Authentication**
-- Sign up / Sign in with Supabase Auth
-- JWT tokens for API authentication
-- Protected routes requiring login
+### 1️⃣ **Authentication**
+- Supabase Auth (email/password)
+- JWT tokens for API auth
+- Protected routes with ProtectedRoute wrapper
+- RLS on all database tables
 
-### 2. **Camera Management**
-- Auto-detect browser video input devices
-- Register cameras with custom names
-- Enable/disable camera monitoring
-- One-to-one mapping between browser device and DB camera record
+**Key Files:**
+- AuthContext.jsx — auth state
+- security.py — JWT verification
 
-### 3. **Real-time Detection**
-- Periodic frame capture from video elements (default: 1.5-2 sec intervals)
-- Send frames to backend for YOLOv8n inference
-- Display bounding boxes and confidence scores on live feed
-- Log detection events to database
-- Debounced logging (max once per 10 sec per camera)
+### 2️⃣ **Camera Management**
+- Auto-detect browser video devices via `navigator.mediaDevices`
+- Register cameras in database with custom names
+- Enable/disable individual cameras
+- One-to-one mapping: browser device ↔ database camera record
 
-### 4. **Notifications**
-- Auto-create notification when person detected
-- Mark notifications as read
-- Real-time unread count polling
-- Toast notifications on new detections
+**Key Files:**
+- useDeviceCameras.js
+- CameraCard.jsx
+- cameraService.js
 
-### 5. **Settings**
+### 3️⃣ **Real-time Human Detection**
+- Capture frames every 1.5-2 sec from video element
+- Send to backend (`POST /api/detect/frame`) for YOLOv8n inference
+- Receive bounding boxes + confidence scores
+- Overlay boxes on live feed
+- Log top detection to database (debounced max once per 10 sec)
+- Auto-create notification when detected
+
+**How it works:**
+```
+Video Stream → useDetection hook → Canvas capture → 
+Backend YOLOv8n → Detections returned → 
+Bounding boxes rendered → logDetectionEvent → 
+Notification auto-created
+```
+
+**Key Files:**
+- useDetection.js
+- detection.py
+- detector.py
+
+### 4️⃣ **🔥 Fire Alarm System (NEW)**
+
+**Real Hardware Mode:**
+- Connect to OhStem MQTT broker via WebSocket (`wss://mqtt.ohstem.vn:8084/mqtt`)
+- Subscribe to `sentryai/temperature` topic
+- Receive real-time temperature from Yolo:Bit device
+- Trigger alert if temp > 50°C (configurable)
+
+**Simulation Mode:**
+- Manual temperature control via slider (0-100°C)
+- Perfect for testing without hardware
+- Toggle between modes anytime
+
+**Alert Behavior:**
+- ✅ Temperature ≤ 50°C: "Safe & Normal" status
+- 🔥 Temperature > 50°C: Flashing red alert + audio beep + toast notification
+
+**Key Files:**
+- FireAlarmPage.jsx — 720 lines, full UI
+- fireAlarmService.js — MQTT client
+- fire.py — backend endpoints
+- fire_settings.sql — config table
+- fire_alerts.sql — event log table
+
+### 5️⃣ **Notifications**
+- Auto-created when person detected
+- Mark individual as read
+- Mark all as read
+- Real-time unread count (polls every 15 sec)
+- Toast notifications on new detection
+
+**Key Files:**
+- NotificationsPage.jsx
+- notificationService.js
+
+### 6️⃣ **Settings & Profile**
+- Edit full name & email (email read-only)
 - Adjust confidence threshold (0.1 - 0.95)
-- Enable/disable detection globally
-- User profile management (name, email)
+- Toggle detection globally on/off
 
-### 6. **History**
-- View past detection events with timestamps
-- Paginated table (25 items per page)
+**Key Files:**
+- SettingsPage.jsx
+
+### 7️⃣ **Detection History**
+- View all past detection events
+- Paginated (25 items per page)
 - Confidence indicators with color coding
+- Timestamp for each event
+
+**Key Files:**
+- HistoryPage.jsx
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack Details
 
-### Frontend
-| Technology | Purpose |
-|-----------|---------|
-| **React 18** | UI framework |
-| **Vite** | Fast bundler |
-| **Tailwind CSS 3** | Styling with custom "sentry" color palette |
-| **React Router 6** | Client-side routing |
-| **Supabase JS** | Auth & database queries |
-| **Lucide React** | Icons |
-| **React Hot Toast** | Toast notifications |
-
-### Backend
-| Technology | Purpose |
-|-----------|---------|
-| **FastAPI** | Web framework |
-| **Uvicorn** | ASGI server |
-| **YOLOv8n** | Person detection model |
-| **Pillow** | Image processing |
-| **Supabase Python** | Database & auth |
-| **Pydantic** | Data validation |
-
-### Database (Supabase PostgreSQL)
-| Table | Purpose |
-|-------|---------|
-| `profiles` | User profile info |
-| `cameras` | User-owned camera records |
-| `detection_settings` | Per-user detection config |
-| `detection_events` | Logged detection events |
-| `notifications` | Notification records |
+| Component | Tech | Version |
+|-----------|------|---------|
+| **Frontend Framework** | React | 18.3.1 |
+| **Bundler** | Vite | 5.4.1 |
+| **CSS** | Tailwind CSS | 3.4.10 |
+| **Routing** | React Router | 6.26.0 |
+| **Auth** | Supabase Auth | 2.45.0 |
+| **MQTT** | mqtt.js | 5.15.1 |
+| **Icons** | Lucide React | 0.441.0 |
+| **Toasts** | React Hot Toast | 2.4.1 |
+| **Backend** | FastAPI | 0.115.0 |
+| **Server** | Uvicorn | 0.30.0 |
+| **AI Model** | YOLOv8n | ultralytics 8.3.0 |
+| **Image Processing** | Pillow | 10.4.0 |
+| **Database** | Supabase PostgreSQL | - |
 
 ---
 
 ## 📡 API Endpoints
 
-### Backend (`/api/`)
+### Detection Endpoints
+- `POST /api/detect/frame` — YOLOv8n inference on image
+- `POST /api/detect/log-event` — Log detection to database
+- `GET /api/detect/status` — Get user's detection settings
 
-#### Detection
-- **POST** `/api/detect/frame` - Send image frame for YOLOv8n inference
-  - Headers: `Authorization: Bearer <JWT>`
-  - Body: `multipart/form-data` with `file` (image)
-  - Returns: `{ detections: [], count: int, frame_width: int, frame_height: int }`
+### 🔥 Fire Detection Endpoints (NEW)
+- `GET /api/fire/temperature` — Get current temperature from IoT device
+- `POST /api/fire/check-alert` — Check if fire alert should trigger
+- `POST /api/fire/settings` — Update fire settings (threshold, device IP)
+- `GET /api/fire/alerts-history` — Fetch fire alert history
 
-- **POST** `/api/detect/log-event` - Log a detection event
-  - Headers: `Authorization: Bearer <JWT>`
-  - Body: `{ camera_id, confidence, bbox[], snapshot_url, status }`
+### Notifications Endpoints
+- `POST /api/notifications/create` — Create notification record
 
-- **GET** `/api/detect/status` - Get user's detection settings
-  - Headers: `Authorization: Bearer <JWT>`
-  - Returns: `{ detection_enabled: bool, confidence_threshold: float }`
-
-#### Notifications
-- **POST** `/api/notifications/create` - Create a notification
-  - Headers: `Authorization: Bearer <JWT>`
-  - Body: `{ title, message, detection_event_id }`
-
-#### Health
-- **GET** `/health` - Health check
-  - Returns: `{ status: "ok" }`
+### Health Endpoint
+- `GET /health` — Health check
 
 ---
 
-## 🗄️ Database Schema (Supabase)
+## 🗄️ Database Tables
 
-### Key Tables
-
-**profiles** - User profiles
-```sql
-id (UUID, PK → auth.users)
-email (TEXT)
-full_name (TEXT)
-avatar_url (TEXT)
-created_at, updated_at (TIMESTAMPTZ)
-```
-
-**cameras** - Camera records
-```sql
-id (UUID, PK)
-user_id (UUID, FK → auth.users)
-name (TEXT)
-device_id (TEXT) -- browser device ID
-is_active (BOOLEAN)
-created_at, updated_at (TIMESTAMPTZ)
-UNIQUE(user_id, device_id)
-```
-
-**detection_settings** - Detection configuration
-```sql
-id (UUID, PK)
-user_id (UUID, UNIQUE FK → auth.users)
-detection_enabled (BOOLEAN, DEFAULT true)
-confidence_threshold (REAL, DEFAULT 0.5)
-created_at, updated_at (TIMESTAMPTZ)
-```
-
-**detection_events** - Detection logs
-```sql
-id (UUID, PK)
-user_id (UUID, FK → auth.users)
-camera_id (UUID, FK → cameras)
-confidence (REAL)
-bbox (JSONB) -- array of bounding boxes
-snapshot_url (TEXT)
-status (TEXT) -- 'detected', etc.
-created_at (TIMESTAMPTZ)
-```
-
-**notifications** - Notification records
-```sql
-id (UUID, PK)
-user_id (UUID, FK → auth.users)
-title (TEXT)
-message (TEXT)
-is_read (BOOLEAN, DEFAULT false)
-detection_event_id (UUID, FK → detection_events)
-created_at (TIMESTAMPTZ)
-```
-
-### RPC Functions (Supabase)
-All database operations go through Supabase RPC functions with RLS (Row Level Security):
-- `get_my_cameras()` - List user's cameras
-- `upsert_camera(name, device_id)` - Create/update camera
-- `delete_camera(camera_id)` - Delete camera
-- `set_camera_active(camera_id, is_active)` - Toggle camera
-- `get_my_detection_settings()` - Get settings
-- `update_detection_settings(enabled, threshold)` - Update settings
-- `get_my_profile()` - Get profile
-- `update_my_profile(full_name, avatar_url)` - Update profile
-- `get_my_notifications(limit, offset)` - Fetch notifications
-- `mark_notification_read(notification_id)` - Mark read
-- `mark_all_notifications_read()` - Mark all read
-- `get_unread_notification_count()` - Unread count
-- `get_detection_history(limit, offset)` - Detection events
-- `log_detection_event(...)` - Log new detection
+| Table | Purpose | Rows |
+|-------|---------|------|
+| `auth.users` | Supabase auth | - |
+| `profiles` | User profile info | ✓ |
+| `cameras` | Camera records | ✓ |
+| `detection_settings` | Detection config per user | ✓ |
+| `detection_events` | Human detection logs | ✓ |
+| **`fire_settings`** | Fire alarm config per user | ✓ NEW |
+| **`fire_alerts`** | Fire event logs | ✓ NEW |
+| `notifications` | Notification records | ✓ |
 
 ---
 
-## 🎨 Frontend Design System
+## 🎨 Design System
 
-### Color Palette (Tailwind: `sentry-*`)
-- **sentry-50**: `#0f172a` (darkest)
-- **sentry-100**: `#1e293b`
-- **sentry-200**: `#334155`
-- **sentry-300**: `#475569`
-- **sentry-400**: `#0284c7` (accent)
-- **sentry-500**: `#0ea5e9` (primary)
-- **sentry-600**: `#0284c7`
-- **sentry-700**: `#93c5fd`
-- **sentry-800**: `#e0f2fe`
-- **sentry-900**: `#ffffff`
-- **sentry-950**: `#f0f9ff` (background)
+### Color Palette (Custom Tailwind: `sentry-*`)
+```
+sentry-50:  #0f172a  (darkest)
+sentry-100: #1e293b
+sentry-200: #334155
+sentry-300: #475569
+sentry-400: #0284c7  (accent)
+sentry-500: #0ea5e9  (primary)
+sentry-900: #ffffff
+sentry-950: #f0f9ff  (background)
+```
 
-### Custom CSS Classes (in `index.css`)
-- `.glass-card` - Glassmorphism card component
-- `.btn-primary` / `.btn-secondary` / `.btn-danger` - Buttons
-- `.input-field` - Form inputs
-- `.page-container` / `.page-title` / `.page-subtitle` - Page layout
-- `.status-badge` / `.status-active` / `.status-inactive` - Status indicators
+### Custom CSS Classes
+- `.glass-card` — Glassmorphism card
+- `.btn-primary` / `.btn-secondary` / `.btn-danger` — Buttons
+- `.input-field` — Form inputs
+- `.page-container` / `.page-title` / `.page-subtitle` — Layouts
+- `.status-badge` / `.status-active` / `.status-alert` — Status indicators
 
 ---
 
 ## 🔐 Security
 
-### Authentication Flow
-1. User signs up/in → Supabase Auth creates JWT token
-2. Frontend stores session in `AuthContext`
-3. API calls include `Authorization: Bearer <JWT>` header
-4. Backend verifies JWT using Supabase admin client
-5. `get_current_user()` dependency extracts `user_id` from token
-
-### Database Security (RLS)
-- All tables have Row Level Security enabled
-- Policies ensure users can only access their own data
-- Sensitive operations use `SECURITY DEFINER` functions
-- Backend uses service role key (admin access) for RPC calls
-
-### CORS
-- Backend restricts origins (configured in `.env`)
-- Only whitelisted domains can make API calls
-
----
-
-## 📦 Deployment
-
-### Backend (Docker)
-```bash
-cd backend
-
-# Build image
-docker build -t sentryai-backend:latest .
-
-# Run container
-docker run -p 8000:8000 \
-  -e SUPABASE_URL=... \
-  -e SUPABASE_SERVICE_KEY=... \
-  -e CORS_ORIGINS=... \
-  sentryai-backend:latest
-```
-
-### Frontend (Static)
-```bash
-cd frontend
-
-# Build production bundle
-npm run build
-
-# Serve `dist/` folder via nginx/vercel/github pages
-```
-
----
-
-## 🐛 Troubleshooting
-
-### Camera not working
-- Check browser permissions for camera access
-- Ensure camera device is not in use by other apps
-- Try reloading the page
-
-### Detection not triggering
-- Verify detection is enabled in Settings
-- Check backend logs: `docker logs <container_id>`
-- Ensure confidence threshold is not too high
-
-### Auth failing
-- Verify Supabase URL & keys in `.env`
-- Check JWT secret matches Supabase project
-- Try signing up with new account
-
-### Bounding boxes misaligned
-- Ensure video element dimensions match canvas dimensions
-- Check `frameDimensions` from `useDetection()` hook
+- **JWT Authentication**: Supabase Auth with JWT tokens
+- **Row-Level Security (RLS)**: All tables have RLS policies (users can only access their own data)
+- **CORS**: Backend restricts origins via environment variable
+- **Secure Headers**: Authorization header included on all API calls
+- **MQTT WebSocket Secure (WSS)**: Fire alarm uses encrypted connection
 
 ---
 
 ## 📝 Environment Variables
 
-### Frontend (`.env`)
-```
+### Frontend `.env`
+```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 VITE_BACKEND_URL=http://localhost:8000
 ```
 
-### Backend (`.env`)
-```
+### Backend `.env`
+```env
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_KEY=your-service-key
 SUPABASE_JWT_SECRET=your-jwt-secret
@@ -450,35 +374,91 @@ YOLO_CONFIDENCE_THRESHOLD=0.5
 
 ---
 
-## 📚 Key Concepts
+## 🐛 Troubleshooting
 
-### How Detection Works
-1. **Capture**: `useDetection` hook captures video frames at intervals
-2. **Send**: Frame sent to backend as multipart form data
-3. **Infer**: YOLOv8n runs person-only detection on backend
-4. **Return**: Detections (bbox, confidence) sent back to frontend
-5. **Render**: Bounding boxes overlaid on live video feed
-6. **Log**: Top detection logged to database (debounced)
-7. **Notify**: Auto-created notification triggers toast & stores in DB
+| Issue | Solution |
+|-------|----------|
+| **Camera not working** | Check browser permissions, reload page |
+| **Detection not triggering** | Verify detection enabled in Settings, check backend logs |
+| **MQTT connection failed** | Check device IP, firewall, broker status |
+| **Login failing** | Verify Supabase URL & keys in `.env` |
+| **Bounding boxes misaligned** | Ensure video dimensions match canvas |
 
-### Component Hierarchy
+---
+
+## 📦 Deployment
+
+### Backend (Docker)
+```bash
+cd backend
+docker build -t sentryai-backend:latest .
+docker run -p 8000:8000 \
+  -e SUPABASE_URL=... \
+  -e SUPABASE_SERVICE_KEY=... \
+  sentryai-backend:latest
+```
+
+### Frontend (Static)
+```bash
+cd frontend
+npm run build
+# Deploy dist/ folder to: Vercel, Netlify, or nginx
+```
+
+---
+
+## 🔥 Fire Alarm Configuration Note
+
+### ⚠️ **To Change Fire Alert Temperature Threshold (IMPORTANT)**
+
+The fire alarm threshold is **50°C** by default. To modify it, edit these files:
+
+1. **Frontend - Temperature Display & Alert Logic:**
+   - File: FireAlarmPage.jsx
+   - Line: **Search for `const TEMPERATURE_THRESHOLD = 50`**
+   - Change `50` to your desired threshold (e.g., `55`, `60`, `70`)
+   - This controls: Alert trigger, display message, progress bar
+
+2. **Backend - API Response Logic:**
+   - File: fire.py
+   - Lines: **Find `temperature_threshold = settings.get("temperature_threshold", 50.0)`**
+   - Change default from `50.0` to your desired threshold
+   - This controls: Backend alert checking, database storage
+
+3. **Database - Default User Setting:**
+   - File: fire_settings.sql
+   - Line: **Search for `temperature_threshold REAL DEFAULT 50.0`**
+   - Change `50.0` to your desired threshold
+   - Run this SQL again in Supabase to apply to new users
+
+### Quick Reference
+```
+FireAlarmPage.jsx    → Line ~1: const TEMPERATURE_THRESHOLD = 50  ← CHANGE HERE
+fire.py              → Line ~80: temperature_threshold = ... 50.0  ← CHANGE HERE
+fire_settings.sql    → Line ~10: temperature_threshold REAL DEFAULT 50.0  ← CHANGE HERE
+```
+
+**Note:** Make sure to change all 3 places for consistency across frontend, backend, and database!
+
+---
+
+## 📚 Component Hierarchy
+
 ```
 App
-├── AuthProvider
-│   ├── BrowserRouter
-│   │   ├── LoginPage / SignupPage
-│   │   └── ProtectedRoute
-│   │       └── DashboardLayout
-│   │           ├── Sidebar (nav)
-│   │           ├── Navbar (header)
-│   │           └── Pages
-│   │               ├── DashboardPage
-│   │               │   └── CameraGrid
-│   │               │       └── CameraCard (stream + detection)
-│   │               ├── HistoryPage
-│   │               ├── NotificationsPage
-│   │               └── SettingsPage
-│   └── Toaster (react-hot-toast)
+└── AuthProvider
+    └── BrowserRouter
+        ├── LoginPage / SignupPage
+        └── ProtectedRoute
+            └── DashboardLayout
+                ├── Sidebar (nav with Fire Alarm link)
+                ├── Navbar (notifications bell)
+                └── Pages
+                    ├── DashboardPage (camera grid)
+                    ├── HistoryPage (detection logs)
+                    ├── NotificationsPage (alerts)
+                    ├── FireAlarmPage (🔥 MQTT/Simulator)
+                    └── SettingsPage (config)
 ```
 
 ---
@@ -492,20 +472,6 @@ App
 
 ---
 
-## 📄 License
-
-MIT License - feel free to use for personal/commercial projects
-
----
-
-## 📞 Support
-
-For issues, feature requests, or questions:
-- Check existing GitHub issues
-- Create new issue with detailed description
-- Include browser/OS info & screenshots
-
----
-
-**Last Updated**: 2024
-**Version**: 1.0.0
+**Version:** 1.1.0 (with Fire Alarm)  
+**Last Updated:** 2024  
+**Status:** ✅ Fully Functional

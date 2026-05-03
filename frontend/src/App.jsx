@@ -8,6 +8,7 @@ import SignupPage from './pages/SignupPage'
 import DashboardPage from './pages/DashboardPage'
 import HistoryPage from './pages/HistoryPage'
 import NotificationsPage from './pages/NotificationsPage'
+import FireAlarmPage from './pages/FireAlarmPage'
 import SettingsPage from './pages/SettingsPage'
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="/" element={<DashboardPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/fire-alarm" element={<FireAlarmPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
 
