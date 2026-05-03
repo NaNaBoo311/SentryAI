@@ -8,7 +8,7 @@ from app.services.detector import init_detector
 from app.api.health import router as health_router
 from app.api.detection import router as detection_router
 from app.api.notifications import router as notifications_router
-
+from app.api.fire import router as fire_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,15 +17,13 @@ async def lifespan(app: FastAPI):
     init_detector(confidence_threshold=settings.yolo_confidence_threshold)
     yield
 
-
 app = FastAPI(
     title="SentryAI Backend",
-    description="Smart home security API with YOLOv8 human detection",
+    description="Smart home security API with YOLOv8 human detection & fire alert",
     version="1.0.0",
     lifespan=lifespan,
 )
 
-# CORS
 settings = get_settings()
 app.add_middleware(
     CORSMiddleware,
@@ -39,3 +37,4 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(detection_router)
 app.include_router(notifications_router)
+app.include_router(fire_router)

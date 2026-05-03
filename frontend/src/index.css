@@ -91,3 +91,48 @@ body {
     @apply status-badge bg-red-500/20 text-red-400 border border-red-500/30;
   }
 }
+
+
+
+/* Add at the end of the file */
+
+@keyframes pulse-fire {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes bounce-alert {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-pulse-fire {
+  animation: pulse-fire 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-bounce-alert {
+  animation: bounce-alert 0.5s ease-in-out infinite;
+}
+
+/* Fire alarm specific styles */
+.fire-alert-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(220, 38, 38, 0.1);
+  pointer-events: none;
+  animation: pulse-fire 1.5s ease-in-out infinite;
+  z-index: 40;
+}
+
+.fire-temp-display {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.05em;
+}

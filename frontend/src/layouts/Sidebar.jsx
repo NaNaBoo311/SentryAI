@@ -7,6 +7,7 @@ import {
   Shield,
   ChevronLeft,
   ChevronRight,
+  Flame,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -14,6 +15,7 @@ const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/history', label: 'History', icon: History },
   { path: '/notifications', label: 'Notifications', icon: Bell },
+  { path: '/fire-alarm', label: 'Fire Alarm', icon: Flame },
   { path: '/settings', label: 'Settings', icon: Settings },
 ]
 

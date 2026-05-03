@@ -126,7 +126,7 @@ export default function DashboardPage() {
           />
         </div>
       </div>
-
+      
       {/* Stats cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="glass-card px-5 py-4 flex items-center gap-4">
