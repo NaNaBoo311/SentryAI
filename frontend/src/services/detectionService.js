@@ -1,5 +1,6 @@
 import { supabase } from '../utils/supabaseClient'
 
+
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 
 export const detectionService = {
@@ -7,7 +8,12 @@ export const detectionService = {
    * Send a frame to the backend for YOLOv8n inference.
    * Returns detections with bounding boxes.
    */
-  async detectFrame(imageBlob, accessToken) {
+  async detectFrame(imageBlob) {
+    // Always fetch a fresh token to avoid 401s from expired/stale sessions
+    const { data: { session } } = await supabase.auth.getSession()
+    const accessToken = session?.access_token
+    if (!accessToken) throw new Error('Not authenticated')
+
     const formData = new FormData()
     formData.append('file', imageBlob, 'frame.jpg')
 

@@ -15,7 +15,7 @@ export function useDetection(videoRef, enabled = true, intervalMs = 1500) {
   const canvasRef = useRef(document.createElement('canvas'))
 
   const captureAndDetect = useCallback(async () => {
-    if (!videoRef?.current || !session?.access_token) return
+    if (!videoRef?.current) return
     const video = videoRef.current
     if (video.readyState < 2) return // not enough data
 
@@ -31,7 +31,7 @@ export function useDetection(videoRef, enabled = true, intervalMs = 1500) {
       )
       if (!blob) return
 
-      const result = await detectionService.detectFrame(blob, session.access_token)
+      const result = await detectionService.detectFrame(blob)
       setDetections(result.detections || [])
       setFrameDimensions({
         width: result.frame_width,
@@ -40,7 +40,7 @@ export function useDetection(videoRef, enabled = true, intervalMs = 1500) {
     } catch (err) {
       console.error('Detection error:', err)
     }
-  }, [videoRef, session])
+  }, [videoRef])
 
   useEffect(() => {
     if (enabled && videoRef?.current) {
